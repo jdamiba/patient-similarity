@@ -285,7 +285,6 @@ const TestimonialCard: React.FC<TestimonialProps> = ({
   author,
   role,
   company,
-  avatar,
 }) => (
   <motion.div
     className="p-8 rounded-2xl bg-white border border-gray-200 hover:shadow-xl transition-all duration-300"
@@ -299,9 +298,8 @@ const TestimonialCard: React.FC<TestimonialProps> = ({
         <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
       ))}
     </div>
-    <p className="text-gray-600 mb-6 leading-relaxed">"{content}"</p>
+    <p className="text-gray-600 mb-6 leading-relaxed">&quot;{content}&quot;</p>
     <div className="flex items-center">
-      <img src={avatar} alt={author} className="w-12 h-12 rounded-full mr-4" />
       <div>
         <h4 className="font-semibold text-gray-900">{author}</h4>
         <p className="text-gray-500 text-sm">
@@ -632,8 +630,8 @@ const ModernSaaSLanding = () => {
                 Loved by teams everywhere
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Don't just take our word for it. Here's what our customers have
-                to say about their experience with our platform.
+                Don&apos;t just take our word for it. Here&apos;s what our
+                customers have to say about their experience with our platform.
               </p>
             </motion.div>
           </div>

@@ -1,5 +1,23 @@
 "use client";
 import React, { useState } from "react";
+import type {
+  Patient,
+  Condition,
+  MedicationStatement,
+  AllergyIntolerance,
+  Procedure,
+  Immunization,
+  Observation,
+  Bundle,
+  BundleEntry,
+} from "fhir/r4";
+
+type Extension = {
+  url: string;
+  valueString?: string;
+  valueCode?: string;
+  extension?: Extension[];
+};
 
 // Define the type for a Qdrant search result
 interface QdrantResult {
@@ -8,7 +26,7 @@ interface QdrantResult {
   payload?: {
     name?: string;
     file?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -26,8 +44,8 @@ function PatientDetailModal({
   file,
 }: PatientDetailModalProps) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [bundle, setBundle] = useState<any>(null);
+  const [error, setError] = useState<string>("");
+  const [bundle, setBundle] = useState<Bundle | null>(null);
 
   React.useEffect(() => {
     if (!open || !patientId || !file) return;
@@ -39,12 +57,16 @@ function PatientDetailModal({
         patientId
       )}&file=${encodeURIComponent(file)}`
     )
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<{ error?: string; bundle?: Bundle }>)
       .then((data) => {
         if (data.error) throw new Error(data.error);
-        setBundle(data.bundle);
+        if (data.bundle) setBundle(data.bundle);
+        else setBundle(null);
       })
-      .catch((err) => setError(err.message))
+      .catch((err: unknown) => {
+        if (err instanceof Error) setError(err.message);
+        else setError(String(err));
+      })
       .finally(() => setLoading(false));
   }, [open, patientId, file]);
 
@@ -52,32 +74,38 @@ function PatientDetailModal({
   function renderDetails() {
     if (!bundle) return null;
     const patient = bundle.entry?.find(
-      (e: any) => e.resource.resourceType === "Patient"
-    )?.resource;
+      (e: BundleEntry) => e.resource?.resourceType === "Patient"
+    )?.resource as Patient | undefined;
     const conditions =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "Condition")
-        .map((e: any) => e.resource) || [];
+        ?.filter((e: BundleEntry) => e.resource?.resourceType === "Condition")
+        .map((e: BundleEntry) => e.resource as Condition) || [];
     const medications =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "MedicationStatement")
-        .map((e: any) => e.resource) || [];
+        ?.filter(
+          (e: BundleEntry) => e.resource?.resourceType === "MedicationStatement"
+        )
+        .map((e: BundleEntry) => e.resource as MedicationStatement) || [];
     const allergies =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "AllergyIntolerance")
-        .map((e: any) => e.resource) || [];
+        ?.filter(
+          (e: BundleEntry) => e.resource?.resourceType === "AllergyIntolerance"
+        )
+        .map((e: BundleEntry) => e.resource as AllergyIntolerance) || [];
     const procedures =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "Procedure")
-        .map((e: any) => e.resource) || [];
+        ?.filter((e: BundleEntry) => e.resource?.resourceType === "Procedure")
+        .map((e: BundleEntry) => e.resource as Procedure) || [];
     const immunizations =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "Immunization")
-        .map((e: any) => e.resource) || [];
+        ?.filter(
+          (e: BundleEntry) => e.resource?.resourceType === "Immunization"
+        )
+        .map((e: BundleEntry) => e.resource as Immunization) || [];
     const observations =
       bundle.entry
-        ?.filter((e: any) => e.resource.resourceType === "Observation")
-        .map((e: any) => e.resource) || [];
+        ?.filter((e: BundleEntry) => e.resource?.resourceType === "Observation")
+        .map((e: BundleEntry) => e.resource as Observation) || [];
 
     return (
       <div className="space-y-4">
@@ -101,31 +129,31 @@ function PatientDetailModal({
             <div>
               <span className="font-medium">Race:</span>{" "}
               {
-                patient?.extension
-                  ?.find((ext: any) => ext.url?.includes("us-core-race"))
-                  ?.extension?.find((e: any) => e.url === "text")?.valueString
+                (patient?.extension as Extension[] | undefined)
+                  ?.find((ext) => ext.url?.includes("us-core-race"))
+                  ?.extension?.find((e) => e.url === "text")?.valueString
               }
             </div>
             <div>
               <span className="font-medium">Ethnicity:</span>{" "}
               {
-                patient?.extension
-                  ?.find((ext: any) => ext.url?.includes("us-core-ethnicity"))
-                  ?.extension?.find((e: any) => e.url === "text")?.valueString
+                (patient?.extension as Extension[] | undefined)
+                  ?.find((ext) => ext.url?.includes("us-core-ethnicity"))
+                  ?.extension?.find((e) => e.url === "text")?.valueString
               }
             </div>
             <div>
               <span className="font-medium">Birth Sex:</span>{" "}
               {
-                patient?.extension?.find((ext: any) =>
+                (patient?.extension as Extension[] | undefined)?.find((ext) =>
                   ext.url?.includes("us-core-birthsex")
                 )?.valueCode
               }
             </div>
             <div>
-              <span className="font-medium">Mother's Maiden Name:</span>{" "}
+              <span className="font-medium">Mother&apos;s Maiden Name:</span>{" "}
               {
-                patient?.extension?.find((ext: any) =>
+                (patient?.extension as Extension[] | undefined)?.find((ext) =>
                   ext.url?.includes("mothersMaidenName")
                 )?.valueString
               }
@@ -138,7 +166,7 @@ function PatientDetailModal({
           </h3>
           {conditions.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {conditions.map((c: any) => (
+              {conditions.map((c: Condition) => (
                 <li key={c.id}>
                   {c.code?.text || c.code?.coding?.[0]?.display}
                 </li>
@@ -154,7 +182,7 @@ function PatientDetailModal({
           </h3>
           {medications.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {medications.map((m: any) => (
+              {medications.map((m: MedicationStatement) => (
                 <li key={m.id}>
                   {m.medicationCodeableConcept?.text ||
                     m.medicationCodeableConcept?.coding?.[0]?.display}
@@ -171,7 +199,7 @@ function PatientDetailModal({
           </h3>
           {allergies.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {allergies.map((a: any) => (
+              {allergies.map((a: AllergyIntolerance) => (
                 <li key={a.id}>
                   {a.code?.text || a.code?.coding?.[0]?.display}
                 </li>
@@ -187,7 +215,7 @@ function PatientDetailModal({
           </h3>
           {procedures.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {procedures.map((p: any) => (
+              {procedures.map((p: Procedure) => (
                 <li key={p.id}>
                   {p.code?.text || p.code?.coding?.[0]?.display}{" "}
                   {p.performedDateTime ? `(${p.performedDateTime})` : ""}
@@ -204,7 +232,7 @@ function PatientDetailModal({
           </h3>
           {immunizations.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {immunizations.map((im: any) => (
+              {immunizations.map((im: Immunization) => (
                 <li key={im.id}>
                   {im.vaccineCode?.text || im.vaccineCode?.coding?.[0]?.display}{" "}
                   {im.occurrenceDateTime ? `(${im.occurrenceDateTime})` : ""}
@@ -221,7 +249,7 @@ function PatientDetailModal({
           </h3>
           {observations.length > 0 ? (
             <ul className="list-disc ml-6 text-gray-700">
-              {observations.slice(0, 5).map((o: any) => (
+              {observations.slice(0, 5).map((o: Observation) => (
                 <li key={o.id}>
                   {o.code?.text || o.code?.coding?.[0]?.display}:{" "}
                   {o.valueQuantity?.value} {o.valueQuantity?.unit}
@@ -266,7 +294,7 @@ export default function SimilaritySearchPage() {
   const [freeText, setFreeText] = useState("");
   const [results, setResults] = useState<QdrantResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<{
     id: string;
@@ -293,8 +321,9 @@ export default function SimilaritySearchPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unknown error");
       setResults(data.results || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError(String(err));
     } finally {
       setLoading(false);
     }
