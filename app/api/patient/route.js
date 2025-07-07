@@ -12,9 +12,19 @@ export async function GET(req) {
     });
   }
   try {
-    const filePath = path.join(FHIR_DIR, file);
-    const content = await fs.readFile(filePath, "utf-8");
-    const bundle = JSON.parse(content);
+    const gcsUrl = `https://storage.googleapis.com/general-medicine/${file}`;
+    const res = await fetch(gcsUrl);
+    if (!res.ok) {
+      return new Response(
+        JSON.stringify({
+          error: `Failed to fetch file from GCS: ${res.statusText}`,
+        }),
+        {
+          status: res.status,
+        }
+      );
+    }
+    const bundle = await res.json();
     return new Response(JSON.stringify({ bundle }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
