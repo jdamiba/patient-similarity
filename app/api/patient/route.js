@@ -1,8 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
-
-const FHIR_DIR = path.join(process.cwd(), "fhir");
-
 export async function GET(req) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const file = url.searchParams.get("file");
