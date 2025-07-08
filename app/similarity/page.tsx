@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type {
   Patient,
   Condition,
@@ -116,8 +116,10 @@ function PatientDetailModal({
           <div className="text-gray-700">
             <div>
               <span className="font-medium">Name:</span>{" "}
-              {patient?.name?.[0]?.given?.join(" ")}{" "}
-              {patient?.name?.[0]?.family}
+              {patient?.name?.[0]?.given
+                ?.map((g) => g.replace(/\d+$/, ""))
+                .join(" ")}{" "}
+              {patient?.name?.[0]?.family?.replace(/\d+$/, "")}
             </div>
             <div>
               <span className="font-medium">Gender:</span> {patient?.gender}
@@ -300,6 +302,23 @@ export default function SimilaritySearchPage() {
     id: string;
     file?: string;
   } | null>(null);
+  const [dropdownPatients, setDropdownPatients] = useState<
+    {
+      id: string;
+      name: string;
+      file?: string | null;
+    }[]
+  >([]);
+  const [dropdownSelected, setDropdownSelected] = useState<string>("");
+
+  // Load first 40 patients for dropdown
+  useEffect(() => {
+    fetch("/api/similarity")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.patients) setDropdownPatients(data.patients);
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -329,6 +348,38 @@ export default function SimilaritySearchPage() {
     }
   };
 
+  // When a dropdown patient is selected, search for similar patients
+  const handleDropdownChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedId = e.target.value;
+    setDropdownSelected(selectedId);
+    setPatientId("");
+    setFreeText("");
+    setLoading(true);
+    setError("");
+    setResults([]);
+    if (!selectedId) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/api/similarity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: selectedId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+      setResults(data.results || []);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePatientClick = (id: string, file?: string) => {
     setSelectedPatient({ id, file });
     setModalOpen(true);
@@ -340,20 +391,26 @@ export default function SimilaritySearchPage() {
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-700">
           Patient Similarity Search
         </h1>
+        {/* Dropdown for selecting a patient */}
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-1">
+            Select a Patient
+          </label>
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
+            value={dropdownSelected}
+            onChange={handleDropdownChange}
+            disabled={loading || dropdownPatients.length === 0}
+          >
+            <option value="">-- Choose a patient --</option>
+            {dropdownPatients.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} (ID: {p.id})
+              </option>
+            ))}
+          </select>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Patient ID
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-black placeholder-gray-400"
-              placeholder="Enter Patient ID (optional)"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              disabled={loading}
-            />
-          </div>
           <div className="flex items-center justify-center text-gray-400 text-sm">
             or
           </div>
@@ -389,29 +446,31 @@ export default function SimilaritySearchPage() {
               Top Similar Patients
             </h2>
             <div className="space-y-4">
-              {results.map((r, i) => (
-                <div
-                  key={r.id || i}
-                  className="bg-gray-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between shadow cursor-pointer hover:bg-blue-50 transition"
-                  onClick={() => handlePatientClick(r.id, r.payload?.file)}
-                  title="View patient details"
-                >
-                  <div>
-                    <div className="font-bold text-blue-800 text-lg">
-                      {r.payload?.name || "Unknown Name"}
+              {results
+                .filter((r) => r.id !== dropdownSelected)
+                .map((r, i) => (
+                  <div
+                    key={r.id || i}
+                    className="bg-gray-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between shadow cursor-pointer hover:bg-blue-50 transition"
+                    onClick={() => handlePatientClick(r.id, r.payload?.file)}
+                    title="View patient details"
+                  >
+                    <div>
+                      <div className="font-bold text-blue-800 text-lg">
+                        {r.payload?.name || "Unknown Name"}
+                      </div>
+                      <div className="text-gray-600 text-sm">ID: {r.id}</div>
+                      <div className="text-gray-500 text-xs mt-1">
+                        File: {r.payload?.file}
+                      </div>
                     </div>
-                    <div className="text-gray-600 text-sm">ID: {r.id}</div>
-                    <div className="text-gray-500 text-xs mt-1">
-                      File: {r.payload?.file}
+                    <div className="mt-2 md:mt-0 md:text-right">
+                      <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-mono text-sm">
+                        Score: {r.score?.toFixed(4)}
+                      </span>
                     </div>
                   </div>
-                  <div className="mt-2 md:mt-0 md:text-right">
-                    <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-mono text-sm">
-                      Score: {r.score?.toFixed(4)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}

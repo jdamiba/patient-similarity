@@ -63,3 +63,28 @@ export async function POST(req) {
     });
   }
 }
+
+export async function GET() {
+  try {
+    // Qdrant scroll API: get first 40 points with payload
+    const scrollResult = await qdrant.scroll(QDRANT_COLLECTION, {
+      limit: 40,
+      with_payload: true,
+      with_vector: false,
+    });
+    // Map to id, name, file
+    const patients = (scrollResult.points || []).map((pt) => ({
+      id: pt.id,
+      name: pt.payload?.name || "Unknown Name",
+      file: pt.payload?.file || null,
+    }));
+    return new Response(JSON.stringify({ patients }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+    });
+  }
+}

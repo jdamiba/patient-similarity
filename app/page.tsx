@@ -485,16 +485,20 @@ const ModernSaaSLanding = () => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Rocket className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">SaaSify</span>
+            <span className="text-xl font-bold text-gray-900">Magellan</span>
           </div>
         }
         menuItems={menuItems}
         rightContent={
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm">Get Started</Button>
+            <a href="/sign-in">
+              <Button variant="ghost" size="sm">
+                Sign In
+              </Button>
+            </a>
+            <a href="/sign-up">
+              <Button size="sm">Sign Up</Button>
+            </a>
           </div>
         }
       />
@@ -511,34 +515,36 @@ const ModernSaaSLanding = () => {
             >
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-800 text-sm font-medium mb-8">
                 <Star className="w-4 h-4 mr-2" />
-                Trusted by 10,000+ teams worldwide
+                Empowering Patient Care Navigators
               </div>
 
               <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-                Build Better
-                <span className="text-blue-600"> Products</span>
+                Supercharge Patient Care Navigation
                 <br />
-                Faster Than Ever
+                with <span className="text-blue-600">AI-Powered Insights</span>
               </h1>
 
               <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-                The all-in-one platform that helps teams collaborate, analyze,
-                and ship products that customers love. Join thousands of
-                companies already building the future.
+                The modern platform for patient care navigators to find similar
+                patients, recommend personalized educational materials, and
+                deliver proactive, compassionate support. Harness the power of
+                AI-driven search and recommendations to improve outcomes and
+                save time—so you can focus on what matters most: your patients.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button size="lg" className="group">
-                  Start Free Trial
+                  Get Started
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button variant="outline" size="lg">
-                  Watch Demo
+                  See How It Works
                 </Button>
               </div>
 
               <div className="mt-12 text-sm text-gray-500">
-                No credit card required • 14-day free trial • Cancel anytime
+                Built for care navigators • HIPAA-ready • No technical expertise
+                required
               </div>
             </motion.div>
           </div>
@@ -697,7 +703,7 @@ const ModernSaaSLanding = () => {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Rocket className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">SaaSify</span>
+                <span className="text-xl font-bold">Magellan</span>
               </div>
               <p className="text-gray-400 mb-6">
                 Building the future of team collaboration, one feature at a
@@ -786,7 +792,7 @@ const ModernSaaSLanding = () => {
 
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 SaaSify. All rights reserved.
+              © 2024 Magellan. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 sm:mt-0">
               <a
