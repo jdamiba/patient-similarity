@@ -261,13 +261,15 @@ const PricingCard: React.FC<PricingCardProps> = ({
       ))}
     </ul>
 
-    <Button
-      variant={popular ? "default" : "outline"}
-      className="w-full"
-      size="lg"
-    >
-      Get Started
-    </Button>
+    <a href="/similarity">
+      <Button
+        variant={popular ? "default" : "outline"}
+        className="w-full"
+        size="lg"
+      >
+        Get Started
+      </Button>
+    </a>
   </motion.div>
 );
 
@@ -533,10 +535,12 @@ const ModernSaaSLanding = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button size="lg" className="group">
-                  Get Started
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                <a href="/similarity">
+                  <Button size="lg" className="group">
+                    Get Started
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </a>
                 <Button variant="outline" size="lg">
                   See How It Works
                 </Button>
@@ -676,8 +680,9 @@ const ModernSaaSLanding = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
+                variant="outline"
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 group"
+                className="border-white text-white focus:ring-2 focus:ring-blue-400"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -685,7 +690,7 @@ const ModernSaaSLanding = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-blue-600"
+                className="border-white text-white focus:ring-2 focus:ring-blue-400"
               >
                 Contact Sales
               </Button>
