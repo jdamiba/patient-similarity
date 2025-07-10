@@ -335,8 +335,12 @@ const PatientList: React.FC<PatientListProps> = ({
     }
     const filtered = mappedPatients.filter((patient) => {
       const matchesSearch =
-        patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+        (patient.firstName ? patient.firstName.toLowerCase() : "").includes(
+          searchTerm.toLowerCase()
+        ) ||
+        (patient.lastName ? patient.lastName.toLowerCase() : "").includes(
+          searchTerm.toLowerCase()
+        );
       const matchesStatus =
         filterStatus === "all" || patient.status === filterStatus;
       const matchesPriority =
