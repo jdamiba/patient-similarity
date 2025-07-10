@@ -118,11 +118,8 @@ async function getEmbedding(text) {
           },
         ],
       });
-      console.log(`Embedded and upserted patient ${patientId}`);
     } catch (err) {
       console.error(`Failed for ${file}:`, err.message);
     }
   }
-
-  console.log("Done!");
 })();

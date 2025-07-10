@@ -8,6 +8,7 @@ export async function GET(req) {
   }
   try {
     const gcsUrl = `https://storage.googleapis.com/general-medicine/${file}`;
+
     const res = await fetch(gcsUrl);
     if (!res.ok) {
       return new Response(

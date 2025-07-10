@@ -10,165 +10,15 @@ import {
   Rocket,
   Users,
   TrendingUp,
-  ChevronDown,
-  Menu,
-  X,
 } from "lucide-react";
 import clsx from "clsx";
-
-// Button Component
-interface NavButton {
-  className?: string;
-  children: React.ReactNode;
-  variant?: "default" | "outline" | "ghost";
-  size?: "sm" | "md" | "lg";
-  onClick?: () => void;
-}
-
-const Button: React.FC<NavButton> = ({
-  className,
-  children,
-  variant = "default",
-  size = "md",
-  onClick,
-}) => {
-  const baseClasses =
-    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
-
-  const variants = {
-    default:
-      "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
-    outline:
-      "border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white",
-    ghost: "text-gray-600 hover:text-gray-900 hover:bg-gray-100",
-  };
-
-  const sizes = {
-    sm: "h-9 px-4 text-sm",
-    md: "h-11 px-6 text-base",
-    lg: "h-14 px-8 text-lg",
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(baseClasses, variants[variant], sizes[size], className)}
-    >
-      {children}
-    </button>
-  );
-};
+import { useUser, SignOutButton } from "@clerk/nextjs";
+import Button from "./components/Button";
+import Link from "next/link";
 
 // Header Component
-interface NavItem {
-  to?: string;
-  text: string;
-  items?: {
-    text: string;
-    description?: string;
-    to: string;
-  }[];
-}
-
-interface HeaderProps {
-  className?: string;
-  logo?: React.ReactNode;
-  menuItems?: NavItem[];
-  rightContent?: React.ReactNode;
-}
-
-const ChevronIcon = () => <ChevronDown className="w-4 h-4 opacity-60" />;
-
-const Navigation: React.FC<{ items: NavItem[] }> = ({ items }) => (
-  <nav className="hidden lg:block">
-    <ul className="flex gap-x-8">
-      {items.map(({ to, text, items }, index) => {
-        const Tag = to ? "a" : "button";
-        return (
-          <li
-            className={clsx(
-              "relative [perspective:2000px]",
-              Array.isArray(items) && items.length > 0 && "group"
-            )}
-            key={index}
-          >
-            <Tag
-              className="flex items-center gap-x-1 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-              href={to}
-            >
-              {text}
-              {Array.isArray(items) && items.length > 0 && <ChevronIcon />}
-            </Tag>
-            {Array.isArray(items) && items.length > 0 && (
-              <div className="absolute -left-5 top-full w-[300px] pt-5 pointer-events-none opacity-0 origin-top-left transition-[opacity,transform] duration-200 [transform:rotateX(-12deg)_scale(0.9)] group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-hover:[transform:none]">
-                <ul className="relative flex min-w-[248px] flex-col gap-y-0.5 rounded-xl border border-gray-200 bg-white shadow-xl p-2.5">
-                  {Array.isArray(items) &&
-                    items.map(({ text, description, to }, index) => (
-                      <li key={index}>
-                        <a
-                          className="group/link relative flex items-center overflow-hidden whitespace-nowrap rounded-xl p-3 hover:bg-gray-50 transition-colors"
-                          href={to}
-                        >
-                          <div className="relative z-10">
-                            <span className="block text-sm font-medium text-gray-900">
-                              {text}
-                            </span>
-                            {description && (
-                              <span className="mt-0.5 block text-sm text-gray-500">
-                                {description}
-                              </span>
-                            )}
-                          </div>
-                        </a>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  </nav>
-);
-
-const Header: React.FC<HeaderProps> = ({
-  className,
-  logo,
-  menuItems = [],
-  rightContent,
-}) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-
-  return (
-    <header
-      className={clsx(
-        "relative z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-200",
-        className
-      )}
-    >
-      <div className="mx-auto max-w-7xl px-6 py-4">
-        <div className="flex items-center justify-between">
-          {logo}
-          <Navigation items={menuItems} />
-          <div className="flex items-center gap-x-4">
-            {rightContent}
-            <button
-              className="lg:hidden p-2"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+// EXTRACTED: See app/components/Header.tsx
+import Header from "./components/Header";
 
 // Feature Card Component
 interface FeatureCardProps {
@@ -261,7 +111,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
       ))}
     </ul>
 
-    <a href="/similarity">
+    <Link href="/sign-up" legacyBehavior>
       <Button
         variant={popular ? "default" : "outline"}
         className="w-full"
@@ -269,81 +119,13 @@ const PricingCard: React.FC<PricingCardProps> = ({
       >
         Get Started
       </Button>
-    </a>
+    </Link>
   </motion.div>
-);
-
-// Testimonial Component
-interface TestimonialProps {
-  content: string;
-  author: string;
-  role: string;
-  company: string;
-  avatar: string;
-}
-
-const TestimonialCard: React.FC<TestimonialProps> = ({
-  content,
-  author,
-  role,
-  company,
-}) => (
-  <motion.div
-    className="p-8 rounded-2xl bg-white border border-gray-200 hover:shadow-xl transition-all duration-300"
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
-  >
-    <div className="flex items-center mb-4">
-      {[...Array(5)].map((_, i) => (
-        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-      ))}
-    </div>
-    <p className="text-gray-600 mb-6 leading-relaxed">&quot;{content}&quot;</p>
-    <div className="flex items-center">
-      <div>
-        <h4 className="font-semibold text-gray-900">{author}</h4>
-        <p className="text-gray-500 text-sm">
-          {role} at {company}
-        </p>
-      </div>
-    </div>
-  </motion.div>
-);
-
-// Stats Component
-const StatsSection = () => (
-  <section className="py-20 bg-blue-600">
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-        {[
-          { number: "10K+", label: "Active Users" },
-          { number: "99.9%", label: "Uptime" },
-          { number: "50+", label: "Countries" },
-          { number: "24/7", label: "Support" },
-        ].map((stat, index) => (
-          <motion.div
-            key={index}
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
-              {stat.number}
-            </div>
-            <div className="text-blue-100">{stat.label}</div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </section>
 );
 
 // Main Landing Page Component
 const ModernSaaSLanding = () => {
+  const { isSignedIn } = useUser();
   const menuItems = [
     {
       text: "Product",
@@ -448,36 +230,6 @@ const ModernSaaSLanding = () => {
     },
   ];
 
-  const testimonials = [
-    {
-      content:
-        "This platform has completely transformed how our team collaborates. The intuitive interface and powerful features have boosted our productivity by 300%.",
-      author: "Sarah Johnson",
-      role: "Product Manager",
-      company: "TechCorp",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    },
-    {
-      content:
-        "The best investment we've made for our business. The analytics insights have helped us make data-driven decisions that increased our revenue significantly.",
-      author: "Michael Chen",
-      role: "CEO",
-      company: "StartupXYZ",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    },
-    {
-      content:
-        "Outstanding customer support and a product that actually delivers on its promises. We've been using it for 2 years and couldn't be happier.",
-      author: "Emily Rodriguez",
-      role: "Operations Director",
-      company: "GrowthCo",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -492,16 +244,31 @@ const ModernSaaSLanding = () => {
         }
         menuItems={menuItems}
         rightContent={
-          <div className="flex items-center space-x-4">
-            <a href="/sign-in">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </a>
-            <a href="/sign-up">
-              <Button size="sm">Sign Up</Button>
-            </a>
-          </div>
+          isSignedIn ? (
+            <div className="flex items-center space-x-4">
+              <a href="/dashboard">
+                <Button size="sm" variant="default">
+                  Dashboard
+                </Button>
+              </a>
+              <SignOutButton>
+                <Button size="sm" variant="ghost">
+                  Sign Out
+                </Button>
+              </SignOutButton>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link href="/sign-in" legacyBehavior>
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/sign-up" legacyBehavior>
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </div>
+          )
         }
       />
 
@@ -535,12 +302,12 @@ const ModernSaaSLanding = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="/similarity">
+                <Link href="/sign-up" legacyBehavior>
                   <Button size="lg" className="group">
                     Get Started
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                </a>
+                </Link>
                 <Button variant="outline" size="lg">
                   See How It Works
                 </Button>
@@ -554,9 +321,6 @@ const ModernSaaSLanding = () => {
           </div>
         </div>
       </section>
-
-      {/* Stats Section */}
-      <StatsSection />
 
       {/* Features Section */}
       <section className="py-32 bg-white">
@@ -620,41 +384,6 @@ const ModernSaaSLanding = () => {
                 period={plan.period}
                 features={plan.features}
                 popular={plan.popular}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                Loved by teams everywhere
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Don&apos;t just take our word for it. Here&apos;s what our
-                customers have to say about their experience with our platform.
-              </p>
-            </motion.div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <TestimonialCard
-                key={index}
-                content={testimonial.content}
-                author={testimonial.author}
-                role={testimonial.role}
-                company={testimonial.company}
-                avatar={testimonial.avatar}
               />
             ))}
           </div>

@@ -11,6 +11,33 @@ import type {
   Bundle,
   BundleEntry,
 } from "fhir/r4";
+import Header from "../components/Header";
+import { useUser, SignOutButton } from "@clerk/nextjs";
+import { Rocket } from "lucide-react";
+import Button from "../components/Button";
+import Link from "next/link";
+
+const menuItems = [
+  {
+    text: "Product",
+    items: [
+      {
+        text: "Features",
+        description: "Explore our powerful features",
+        to: "/features",
+      },
+      {
+        text: "Integrations",
+        description: "Connect with your tools",
+        to: "/integrations",
+      },
+      { text: "API", description: "Build with our API", to: "/api" },
+    ],
+  },
+  { text: "Pricing", to: "/pricing" },
+  { text: "About", to: "/about" },
+  { text: "Contact", to: "/contact" },
+];
 
 type Extension = {
   url: string;
@@ -292,8 +319,8 @@ function PatientDetailModal({
 }
 
 export default function SimilaritySearchPage() {
+  const { isSignedIn } = useUser();
   const [patientId, setPatientId] = useState("");
-  const [freeText, setFreeText] = useState("");
   const [results, setResults] = useState<QdrantResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -326,16 +353,15 @@ export default function SimilaritySearchPage() {
     setError("");
     setResults([]);
     try {
-      const body = patientId ? { patientId } : freeText ? { freeText } : null;
-      if (!body) {
-        setError("Please enter a Patient ID or Free Text query.");
+      if (!patientId) {
+        setError("Please select a patient from the dropdown.");
         setLoading(false);
         return;
       }
       const res = await fetch("/api/similarity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ patientId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unknown error");
@@ -355,7 +381,6 @@ export default function SimilaritySearchPage() {
     const selectedId = e.target.value;
     setDropdownSelected(selectedId);
     setPatientId("");
-    setFreeText("");
     setLoading(true);
     setError("");
     setResults([]);
@@ -386,8 +411,46 @@ export default function SimilaritySearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4">
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8 mt-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
+      <Header
+        logo={
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Rocket className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">Magellan</span>
+          </div>
+        }
+        menuItems={menuItems}
+        rightContent={
+          isSignedIn ? (
+            <div className="flex items-center space-x-4">
+              <a href="/dashboard">
+                <Button size="sm" variant="default">
+                  Dashboard
+                </Button>
+              </a>
+              <SignOutButton>
+                <Button size="sm" variant="ghost">
+                  Sign Out
+                </Button>
+              </SignOutButton>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link href="/sign-in" legacyBehavior>
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/sign-up" legacyBehavior>
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </div>
+          )
+        }
+      />
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8 py-16 px-4 mt-8">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-700">
           Patient Similarity Search
         </h1>
@@ -411,22 +474,6 @@ export default function SimilaritySearchPage() {
           </select>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center justify-center text-gray-400 text-sm">
-            or
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Free Text Query
-            </label>
-            <textarea
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-black placeholder-gray-400"
-              placeholder="Describe a patient (e.g., '65 year old male with diabetes and hypertension')"
-              value={freeText}
-              onChange={(e) => setFreeText(e.target.value)}
-              rows={3}
-              disabled={loading}
-            />
-          </div>
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition"
